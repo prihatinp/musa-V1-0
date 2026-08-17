@@ -1,29 +1,437 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Celyn AI — Native English Teacher</title>
-  <meta name="description" content="Celyn V1.0 — a Native English AI Teacher & Conversational Assistant with hands-free voice practice, grammar correction, and TOEFL prep." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗣️</text></svg>" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    if (window.tailwind) {
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              celyn: { deep: "#1A365D", accent: "#3182CE", grey: "#F8FAFC" },
-            },
-          },
-        },
-      };
-    }
-  </script>
-  <link rel="stylesheet" href="css/styles.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>MUSA — Musashi Utility &amp; Service Assistant</title>
+<meta name="description" content="MUSA 2.0 — Musashi Utility & Service Assistant. AI-powered maintenance assistant for smart and reliable operations. GO FAR BEYOND." />
+<meta name="theme-color" content="#0f1117" />
+<meta name="color-scheme" content="dark" />
+
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icons/icon.svg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0" rel="stylesheet" />
+
+<link rel="stylesheet" href="assets/css/main.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/responsive.css" />
+<style>
+  .material-symbols-rounded {
+    font-family: "Material Symbols Rounded";
+    font-weight: 500;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+  }
+  #splash {
+    position: fixed; inset: 0; z-index: 9999; background: #0f1117;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+  #splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+  #splash .splash-ring { width: 64px; height: 64px; animation: spinSlow 1.6s linear infinite; }
+  #splash p { color: #94a3b8; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+</style>
 </head>
-<body class="bg-[#F8FAFC] text-slate-800">
-  <div id="app"></div>
-  <script type="module" src="js/app.js"></script>
+<body>
+
+<!-- Shared SVG defs / symbols (Musashi Man Avatar + GO FAR BEYOND mark) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="musaRingGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="55%" stop-color="#c026d3" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="visorGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#f43f5e" />
+    </linearGradient>
+    <linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="shoulderGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e11d48" />
+      <stop offset="100%" stop-color="#0ea5c9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Musashi Man — "Thinking Time Adventurer" avatar mark -->
+  <symbol id="musashiManAvatar" viewBox="0 0 100 100">
+    <circle class="avatar-ring" cx="50" cy="50" r="45" stroke-dasharray="3 7" />
+    <circle cx="50" cy="50" r="37" fill="#0f1117" opacity="0.65" />
+    <path d="M28 78 Q50 58 72 78 L72 88 Q50 70 28 88 Z" fill="url(#shoulderGrad)" opacity="0.9" />
+    <rect x="31" y="24" width="38" height="34" rx="15" fill="url(#headGrad)" stroke="#38bdf8" stroke-width="1.4" opacity="0.95" />
+    <rect class="visor-glow" x="36" y="37" width="28" height="9" rx="4.5" fill="url(#visorGrad)" />
+    <circle cx="42" cy="41.5" r="1.6" fill="#0f1117" />
+    <circle cx="58" cy="41.5" r="1.6" fill="#0f1117" />
+    <path d="M31 30 L22 20 M69 30 L78 20" stroke="#f43f5e" stroke-width="2.4" stroke-linecap="round" opacity="0.85" />
+    <path d="M50 58 L50 68" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" opacity="0.7" />
+  </symbol>
+
+  <!-- GO FAR BEYOND checkmark mark -->
+  <symbol id="gfbCheckMark" viewBox="0 0 100 60">
+    <path d="M2 30 C 22 12, 34 12, 40 30 C 52 4, 74 -6, 98 8" fill="none" stroke="#f43f5e" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" />
+  </symbol>
+</svg>
+
+<div id="splash" aria-hidden="true">
+  <svg class="splash-ring" viewBox="0 0 100 100"><use href="#musashiManAvatar"></use></svg>
+  <p>Loading MUSA…</p>
+</div>
+
+<div class="app-shell" id="appShell">
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <aside class="app-sidebar" id="appSidebar" aria-label="Main navigation">
+    <div class="sidebar-logo-row">
+      <svg class="brand-mark" viewBox="0 0 100 100"><use href="#musashiManAvatar"></use></svg>
+      <div class="brand-text">
+        <span class="brand-name">MUSA<span class="text-gradient-tech">2.0</span></span>
+        <span class="brand-tag">Musashi Utility &amp; Service Assistant</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <button class="nav-item active" data-view="dashboard" type="button">
+        <span class="material-symbols-rounded">space_dashboard</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-item" data-view="sop" type="button">
+        <span class="material-symbols-rounded">menu_book</span>
+        <span class="nav-label">SOP Knowledge</span>
+      </button>
+      <button class="nav-item" data-view="troubleshoot" type="button">
+        <span class="material-symbols-rounded">troubleshoot</span>
+        <span class="nav-label">Troubleshooting</span>
+      </button>
+      <button class="nav-item" data-view="pm" type="button">
+        <span class="material-symbols-rounded">event_repeat</span>
+        <span class="nav-label">PM Schedule</span>
+        <span class="nav-badge" id="pmOverdueBadge">0</span>
+      </button>
+      <button class="nav-item" data-view="utility" type="button">
+        <span class="material-symbols-rounded">monitoring</span>
+        <span class="nav-label">Utility Monitoring</span>
+      </button>
+      <button class="nav-item" data-view="settings" type="button">
+        <span class="material-symbols-rounded">settings</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <svg width="34" height="34" viewBox="0 0 100 60"><use href="#gfbCheckMark"></use></svg>
+      <div class="sidebar-footer-text">
+        <strong>GO FAR BEYOND</strong>
+        <span>Musashi 100th Year Vision</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Open menu">
+          <span class="material-symbols-rounded">menu</span>
+        </button>
+        <button class="sidebar-toggle" id="sidebarToggleBtn" type="button" aria-label="Collapse sidebar">
+          <span class="material-symbols-rounded">dock_to_right</span>
+        </button>
+        <button class="command-trigger" id="cmdkTrigger" type="button">
+          <span class="material-symbols-rounded" style="font-size:18px">search</span>
+          <span class="cmdk-label">Cari SOP, kode error, atau perintah…</span>
+          <kbd>Ctrl</kbd><kbd>K</kbd>
+        </button>
+      </div>
+      <div class="header-right">
+        <span class="status-chip demo" id="apiStatusChip">
+          <span class="status-dot"></span>
+          <span class="status-label-text" id="apiStatusText">Demo Mode</span>
+        </span>
+        <button class="icon-btn" id="notifBtn" type="button" aria-label="Notifications">
+          <span class="material-symbols-rounded">notifications</span>
+          <span class="badge-dot" id="notifDot" hidden></span>
+        </button>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle voice output" title="Toggle voice output">
+          <span class="material-symbols-rounded" id="voiceIcon">volume_up</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="view-container">
+
+      <!-- ================= DASHBOARD ================= -->
+      <section class="view active" id="view-dashboard">
+        <div class="hero-banner">
+          <div class="hero-copy">
+            <span class="hero-eyebrow"><span class="material-symbols-rounded" style="font-size:15px">bolt</span> Musashi 100th Year Vision</span>
+            <h2>Break Barriers. <span class="text-gradient-brand">Go On Adventures.</span></h2>
+            <p>Selamat datang kembali, Teknisi. Musashi Man siap membantu troubleshooting, SOP, dan monitoring utility hari ini.</p>
+          </div>
+          <div class="gfb-badge">
+            <svg class="gfb-check" viewBox="0 0 100 60"><use href="#gfbCheckMark"></use></svg>
+            <div class="gfb-text"><span>GO FAR</span><span class="gfb-far">BEYOND</span></div>
+          </div>
+        </div>
+
+        <div id="pmAlertBanner"></div>
+
+        <div class="grid grid-dashboard" id="dashboardStats"></div>
+
+        <h3 class="section-title"><span class="material-symbols-rounded">insights</span>Utility Snapshot</h3>
+        <div class="grid grid-dashboard" id="dashboardGauges"></div>
+
+        <h3 class="section-title"><span class="material-symbols-rounded">history</span>Recent Activity</h3>
+        <div class="card" id="recentActivityCard">
+          <div id="recentActivityList"></div>
+        </div>
+      </section>
+
+      <!-- ================= SOP KNOWLEDGE ================= -->
+      <section class="view" id="view-sop">
+        <div class="view-header">
+          <div>
+            <h1>SOP Knowledge Base</h1>
+            <p class="view-sub">SOP, Work Instruction, Manual &amp; Drawing — searchable dan live filter.</p>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="material-symbols-rounded">search</span>
+            <input type="text" class="search-input" id="sopSearchInput" placeholder="Cari dokumen, mesin, atau kata kunci…" />
+          </div>
+          <button class="filter-chip active" data-filter="all" type="button">Semua</button>
+          <button class="filter-chip" data-filter="sop" type="button">SOP</button>
+          <button class="filter-chip" data-filter="wi" type="button">WI</button>
+          <button class="filter-chip" data-filter="manual" type="button">Manual</button>
+          <button class="filter-chip" data-filter="drawing" type="button">Drawing</button>
+        </div>
+        <div class="grid grid-cards" id="sopGrid"></div>
+      </section>
+
+      <!-- ================= TROUBLESHOOTING ================= -->
+      <section class="view" id="view-troubleshoot">
+        <div class="view-header">
+          <div>
+            <h1>Intelligent Troubleshooting</h1>
+            <p class="view-sub">Masukkan kode fault / error mesin untuk mendapatkan panduan diagnosa step-by-step.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="filter-bar" style="margin-bottom:0;">
+            <div class="search-input-wrap">
+              <span class="material-symbols-rounded">bug_report</span>
+              <input type="text" class="search-input" id="faultCodeInput" placeholder="Contoh: E-104, ALM-220, kode fault mesin…" />
+            </div>
+            <button class="btn btn-primary" id="diagnoseBtn" type="button">
+              <span class="material-symbols-rounded">manage_search</span> Diagnose
+            </button>
+          </div>
+        </div>
+        <div id="diagnosticResult"></div>
+        <h3 class="section-title"><span class="material-symbols-rounded">fact_check</span>Kode Fault Umum</h3>
+        <div class="grid grid-cards" id="faultCodeGrid"></div>
+      </section>
+
+      <!-- ================= PM SCHEDULE ================= -->
+      <section class="view" id="view-pm">
+        <div class="view-header">
+          <div>
+            <h1>Preventive Maintenance Schedule</h1>
+            <p class="view-sub">Jadwal PM aktif, overdue, dan riwayat penyelesaian.</p>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <button class="filter-chip active" data-pmfilter="all" type="button">Semua</button>
+          <button class="filter-chip" data-pmfilter="overdue" type="button">Overdue</button>
+          <button class="filter-chip" data-pmfilter="upcoming" type="button">Upcoming</button>
+          <button class="filter-chip" data-pmfilter="done" type="button">Selesai</button>
+        </div>
+        <div class="grid grid-cards" id="pmGrid"></div>
+      </section>
+
+      <!-- ================= UTILITY MONITORING ================= -->
+      <section class="view" id="view-utility">
+        <div class="view-header">
+          <div>
+            <h1>Utility Monitoring Board</h1>
+            <p class="view-sub">Konsumsi listrik, tekanan kompresor, suhu chiller, OEE, MTBF &amp; MTTR real-time.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="refreshUtilityBtn" type="button">
+            <span class="material-symbols-rounded">refresh</span> Refresh
+          </button>
+        </div>
+        <div class="grid grid-dashboard" id="utilityGauges"></div>
+        <h3 class="section-title"><span class="material-symbols-rounded">show_chart</span>Konsumsi Listrik (24 Jam)</h3>
+        <div class="card">
+          <div class="bar-chart" id="powerBarChart"></div>
+        </div>
+      </section>
+
+      <!-- ================= SETTINGS ================= -->
+      <section class="view" id="view-settings">
+        <div class="view-header">
+          <div>
+            <h1>Settings</h1>
+            <p class="view-sub">Konfigurasi koneksi backend, suara, dan preferensi aplikasi.</p>
+          </div>
+        </div>
+        <div class="grid grid-2col">
+          <div class="card">
+            <h3 class="section-title" style="margin-top:0"><span class="material-symbols-rounded">cloud_sync</span>Backend Connection (Google Apps Script)</h3>
+            <form class="settings-form" id="gasSettingsForm">
+              <div class="form-group">
+                <label for="gasUrlInput">GAS Web App URL</label>
+                <input type="url" class="form-input" id="gasUrlInput" placeholder="https://script.google.com/macros/s/XXXXX/exec" />
+                <p class="form-hint">Kosongkan untuk menjalankan mode demo dengan data contoh. URL disimpan lokal di perangkat ini.</p>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="submit" class="btn btn-primary"><span class="material-symbols-rounded">save</span> Simpan &amp; Sambungkan</button>
+                <button type="button" class="btn btn-ghost" id="testConnectionBtn"><span class="material-symbols-rounded">network_ping</span> Test Koneksi</button>
+                <button type="button" class="btn btn-ghost" id="clearCacheBtn"><span class="material-symbols-rounded">delete_sweep</span> Bersihkan Cache</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3 class="section-title" style="margin-top:0"><span class="material-symbols-rounded">record_voice_over</span>Musashi Man Voice</h3>
+            <div class="settings-form">
+              <div class="toggle-row">
+                <div><strong>Voice Response (TTS)</strong><span>Musashi Man membacakan jawaban</span></div>
+                <label class="switch"><input type="checkbox" id="ttsToggle" checked /><span class="slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div><strong>Push-to-Talk Auto Send</strong><span>Kirim otomatis setelah selesai bicara</span></div>
+                <label class="switch"><input type="checkbox" id="autoSendToggle" checked /><span class="slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div><strong>Offline-first Caching</strong><span>Simpan data terakhir untuk mode offline</span></div>
+                <label class="switch"><input type="checkbox" id="offlineCacheToggle" checked /><span class="slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="section-title"><span class="material-symbols-rounded">info</span>Tentang MUSA App</h3>
+        <div class="card">
+          <p style="color:var(--text-secondary); font-size:13.5px; line-height:1.6;">
+            MUSA (Musashi Utility &amp; Service Assistant) — AI-powered maintenance assistant untuk operasi yang cerdas dan andal.
+            Filosofi: Disiplin, Fokus, Reliability, Continuous Improvement, Service Excellence. Dibangun mengikuti semangat Musashi Miyamoto.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ Musashi Man Floating AI Widget ============ -->
+<div class="musa-widget" id="musaWidget" data-state="idle">
+  <div class="musa-chat-panel" id="musaChatPanel">
+    <div class="musa-chat-head">
+      <svg class="musa-mini-avatar" viewBox="0 0 100 100"><use href="#musashiManAvatar"></use></svg>
+      <div>
+        <strong>Musashi Man</strong>
+        <span class="musa-state-label" id="musaStateLabel">Idle</span>
+      </div>
+      <button class="modal-close" id="musaChatCloseBtn" type="button" aria-label="Close chat"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="musa-chat-body" id="musaChatBody"></div>
+    <div class="musa-chat-foot">
+      <button class="ptt-btn" id="pttBtn" type="button" title="Push to talk" aria-label="Push to talk">
+        <span class="material-symbols-rounded" id="pttIcon">mic</span>
+      </button>
+      <input type="text" class="musa-text-input" id="musaTextInput" placeholder="Tanya Musashi Man…" />
+      <button class="icon-btn" id="musaSendBtn" type="button" aria-label="Send" style="width:38px;height:38px;">
+        <span class="material-symbols-rounded" style="font-size:19px">send</span>
+      </button>
+    </div>
+  </div>
+
+  <div style="position:relative;">
+    <div class="musa-quote-bubble" id="musaQuoteBubble">Going Far Beyond limits...</div>
+    <button class="musa-avatar-btn" id="musaAvatarBtn" type="button" aria-label="Open Musashi Man assistant">
+      <svg class="musa-avatar-svg" viewBox="0 0 100 100"><use href="#musashiManAvatar"></use></svg>
+      <div class="waveform-ring">
+        <svg viewBox="0 0 100 100">
+          <g stroke="url(#musaRingGrad)" stroke-width="3" stroke-linecap="round">
+            <line class="wf-bar" x1="20" y1="45" x2="20" y2="55" />
+            <line class="wf-bar" x1="35" y1="35" x2="35" y2="65" />
+            <line class="wf-bar" x1="50" y1="25" x2="50" y2="75" />
+            <line class="wf-bar" x1="65" y1="35" x2="65" y2="65" />
+            <line class="wf-bar" x1="80" y1="45" x2="80" y2="55" />
+          </g>
+        </svg>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- ============ Document Preview Modal ============ -->
+<div class="modal-overlay" id="docModalOverlay">
+  <div class="modal-box modal-lg">
+    <div class="modal-head">
+      <div>
+        <h2 id="docModalTitle">Document</h2>
+        <p id="docModalMeta">SOP · Preview</p>
+      </div>
+      <button class="modal-close" id="docModalCloseBtn" type="button" aria-label="Close"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="modal-body">
+      <iframe class="doc-preview-frame" id="docPreviewFrame" title="Document preview" loading="lazy"></iframe>
+    </div>
+    <div class="modal-footer">
+      <a class="btn btn-ghost" id="docOpenDriveBtn" target="_blank" rel="noopener"><span class="material-symbols-rounded">open_in_new</span> Buka di Drive</a>
+      <button class="btn btn-primary" id="docModalCloseBtn2" type="button"><span class="material-symbols-rounded">check</span> Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PM Checklist Modal ============ -->
+<div class="modal-overlay" id="pmModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h2 id="pmModalTitle">PM Checklist</h2>
+        <p id="pmModalMeta">Machine · Due date</p>
+      </div>
+      <button class="modal-close" id="pmModalCloseBtn" type="button" aria-label="Close"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="modal-body" id="pmModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="pmModalCancelBtn" type="button">Tutup</button>
+      <button class="btn btn-primary" id="pmModalCompleteBtn" type="button"><span class="material-symbols-rounded">task_alt</span> Tandai Selesai</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Command Palette (Ctrl+K) ============ -->
+<div class="cmdk-overlay" id="cmdkOverlay">
+  <div class="cmdk-box">
+    <div class="cmdk-input-row">
+      <span class="material-symbols-rounded">bolt</span>
+      <input type="text" class="cmdk-input" id="cmdkInput" placeholder="Cari SOP, kode error, modul, atau perintah suara…" autocomplete="off" />
+      <kbd>Esc</kbd>
+    </div>
+    <div class="cmdk-results" id="cmdkResults"></div>
+  </div>
+</div>
+
+<!-- ============ Toasts ============ -->
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script type="module" src="assets/js/app.js"></script>
 </body>
 </html>
