@@ -252,12 +252,32 @@ async function loadAllData() {
   ]);
 
   const [statsRes, docsRes, pmRes, utilRes, faultsRes] = results;
+  let shapeMismatch = false;
 
-  state.stats = statsRes.data || mockDashboardStats();
-  state.docs = docsRes.data || MOCK_DOCS;
-  state.pmList = pmRes.data || MOCK_PM;
-  state.utility = utilRes.data || mockUtilityGauges();
-  state.faults = faultsRes.data || MOCK_FAULTS;
+  const asArray = (data, fallback) => {
+    if (Array.isArray(data)) return data;
+    if (data !== undefined && data !== null) shapeMismatch = true;
+    return fallback;
+  };
+  const asFaultMap = (data, fallback) => {
+    if (data && typeof data === "object" && !Array.isArray(data)) return data;
+    if (data !== undefined && data !== null) shapeMismatch = true;
+    return fallback;
+  };
+
+  state.stats = asArray(statsRes.data, mockDashboardStats());
+  state.docs = asArray(docsRes.data, MOCK_DOCS);
+  state.pmList = asArray(pmRes.data, MOCK_PM);
+  state.utility = asArray(utilRes.data, mockUtilityGauges());
+  state.faults = asFaultMap(faultsRes.data, MOCK_FAULTS);
+
+  if (shapeMismatch) {
+    showToast(
+      "error",
+      "Format data backend tidak sesuai",
+      "Backend GAS merespons, tapi bentuk datanya tidak cocok dengan yang diharapkan MUSA App — menampilkan data contoh untuk bagian ini. Cek kontrak API di README."
+    );
+  }
 
   const sources = results.map((r) => r.source);
   if (sources.every((s) => s === "demo")) setApiStatus("demo");
@@ -458,7 +478,7 @@ dom.faultCodeGrid.addEventListener("click", (e) => {
 dom.refreshUtilityBtn.addEventListener("click", async () => {
   dom.refreshUtilityBtn.disabled = true;
   const res = await gasApi.request("getUtilityData", {}, { mockFallback: mockUtilityGauges });
-  state.utility = res.data;
+  state.utility = Array.isArray(res.data) ? res.data : mockUtilityGauges();
   renderUtility();
   dom.refreshUtilityBtn.disabled = false;
   showToast("success", "Data utility diperbarui", null, 2000);
@@ -628,7 +648,7 @@ document.addEventListener("keydown", (e) => {
 // =========================================================
 // Musashi Man AI Assistant wiring
 // =========================================================
-function knowledgeQuery(text) {
+function localKnowledgeQuery(text) {
   const q = text.toLowerCase();
 
   const faultMatch = Object.values(state.faults).find((f) => q.includes(f.code.toLowerCase()));
@@ -661,6 +681,24 @@ function knowledgeQuery(text) {
   }
 
   return { reply: "Saya belum menemukan jawaban pasti untuk itu. Coba sebutkan kode fault, nama mesin, atau kata kunci SOP — saya akan bantu carikan, Go Far Beyond! 🔥" };
+}
+
+// Local matching always runs first for deterministic in-app navigation
+// (fault code lookup, PM/utility view switching). When a GAS backend is
+// connected, its Gemini Flash-Lite aiChat_ reply is preferred for the
+// actual wording — falling back to the canned local reply otherwise.
+async function knowledgeQuery(text) {
+  let local;
+  try {
+    local = localKnowledgeQuery(text);
+  } catch {
+    local = { reply: "Saya belum menemukan jawaban pasti untuk itu. Coba sebutkan kode fault, nama mesin, atau kata kunci SOP — saya akan bantu carikan, Go Far Beyond! 🔥" };
+  }
+  if (gasApi.isConfigured()) {
+    const ai = await gasApi.chat(text, { view: state.view });
+    if (ai && ai.reply) return { reply: ai.reply };
+  }
+  return local;
 }
 
 const musashiMan = new MusashiMan(

@@ -113,6 +113,32 @@ class GasApiClient {
     throw lastErr || new Error("GAS request failed");
   }
 
+  /**
+   * Ask the GAS backend's Gemini Flash-Lite powered aiChat_ action.
+   * Uses text/plain content-type to avoid a CORS preflight against the
+   * Apps Script Web App (which doesn't handle OPTIONS requests).
+   * Returns null (never throws) so callers can fall back to local logic.
+   */
+  async chat(message, context = {}) {
+    if (!this.isConfigured()) return null;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(this.baseUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "aiChat", message, context }),
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return json && json.reply ? json : null;
+    } catch {
+      return null;
+    }
+  }
+
   async testConnection() {
     if (!this.isConfigured()) return { ok: false, message: "URL belum diatur (mode demo aktif)." };
     try {

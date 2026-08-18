@@ -26,7 +26,7 @@ AI-powered maintenance assistant untuk teknisi, engineer, dan operator Musashi. 
 ├── index.html                  # Entry point (Canva-style Single Page App)
 ├── manifest.json                # PWA manifest
 ├── sw.js                        # Service worker (offline-first app shell caching)
-├── icons/                       # App icons (SVG + PNG, termasuk maskable)
+├── icons/                       # App icon (SVG)
 ├── assets/
 │   ├── css/
 │   │   ├── main.css             # Variabel, layout, animasi dasar
@@ -37,6 +37,9 @@ AI-powered maintenance assistant untuk teknisi, engineer, dan operator Musashi. 
 │       ├── gas-api.js           # Google Apps Script REST client wrapper
 │       ├── ai-assistant.js      # Logika Musashi Man + STT/TTS handler
 │       └── ui-renderers.js      # Render kartu, gauge, chart dinamis
+├── google-apps-script/
+│   ├── Code.gs                  # Backend GAS: data endpoints + Gemini Flash-Lite AI chat
+│   └── SHEET_TEMPLATE.md        # Format tab Google Sheet yang dibaca backend
 └── README.md
 ```
 
@@ -87,6 +90,24 @@ function doGet(e) {
 `type` pada dokumen SOP mendukung nilai: `sop`, `wi`, `manual`, `drawing`. `status` pada PM mendukung: `overdue`, `upcoming`, `done`. `severity` pada fault code mendukung: `critical`, `warning`, `info`.
 
 Semua respons berhasil otomatis di-cache di `localStorage` (10 menit) sehingga aplikasi tetap bisa menampilkan data terakhir saat offline (offline-first).
+
+---
+
+## 🤖 Backend Siap Pakai: Google Apps Script + Gemini Flash-Lite
+
+Folder `google-apps-script/Code.gs` sudah berisi implementasi lengkap dari kontrak API di atas — tinggal deploy, tidak perlu ditulis dari nol.
+
+1. Buat Google Sheet baru (atau pakai yang sudah ada), lalu isi 5 tab sesuai `google-apps-script/SHEET_TEMPLATE.md` (`Dashboard`, `SOP`, `PM`, `Utility`, `Faults`). Tab kosong tetap aman — endpoint terkait akan mengembalikan array kosong.
+2. Di Sheet tersebut: **Extensions → Apps Script**. Hapus isi default, paste seluruh isi `google-apps-script/Code.gs`.
+3. **Project Settings** (ikon gear) → **Script Properties** → tambahkan:
+   - `GEMINI_API_KEY` — buat di [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+   - `GEMINI_MODEL` — opsional, default `gemini-3.1-flash-lite` (model Flash-Lite yang aktif per Agustus 2026; Google cukup sering mengganti nama model, jadi cek [daftar model terbaru](https://ai.google.dev/gemini-api/docs/models) sesekali dan update property ini bila perlu tanpa mengubah kode).
+4. **Deploy → New deployment → Web app**. `Execute as: Me`, `Who has access: Anyone`. Salin URL `.../exec`.
+5. Tempel URL tersebut di MUSA App → **Settings → GAS Web App URL → Simpan & Sambungkan**.
+
+Setelah tersambung, setiap pertanyaan ke Musashi Man (chat teks maupun voice) akan dijawab oleh Gemini Flash-Lite dengan persona & konteks Musashi (system prompt sudah ditanam di `aiChat_()`), sambil tetap memicu navigasi otomatis di app (mis. kode fault mengarahkan ke halaman Troubleshooting). Tanpa backend tersambung, Musashi Man tetap menjawab pakai pencocokan kata kunci lokal (mode demo) — tidak pernah gagal total meski Gemini/API key belum diatur.
+
+Biaya: Gemini Flash-Lite adalah tier termurah di Gemini API, cocok untuk pemakaian chat ringan seperti ini — cek [harga terbaru](https://ai.google.dev/gemini-api/docs/pricing) di AI Studio sebelum deploy produksi.
 
 ---
 
